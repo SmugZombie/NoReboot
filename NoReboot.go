@@ -3,7 +3,7 @@ package main
 // NoReboot
 // A simple script designed to disable automatic reboots by windows updates. 
 // Smugzombie - github.com/smugzombie
-// Version 1.0
+// Version 1.1
 // We're not saying that you should skip installing updates, as they're important to keep your device secure and up to date. 
 // However, there are scenarios where you make want to take full control and decide exactly when to restart your computer 
 // to apply new updates, and this is when knowing how to stop automatic reboots comes in handy.
@@ -24,6 +24,8 @@ var undo = ""
 func main() {
 	// Show the splash screen
 	splash()
+
+	checkIfAdmin()
 
 	// Check to see if NoReboot is already enabled
 	if(checkForNoReboot()){
@@ -226,3 +228,51 @@ func createAbout(filepath string){
 	err = file.Sync()
 	if err != nil { fmt.Println(err) }
 }
+
+func checkIfAdmin(){
+    Block{
+        Try: func() {
+            fo, err := os.Create("c:\\test.txt")
+            if err != nil { 
+                Throw("Oops, NoReboot Needs to be run with Administrative Priviledges. Run-As Administrator to continue.") 
+            }
+            defer fo.Close()
+        },
+        Catch: func(e Exception) {
+            fmt.Printf("%v\n", e)
+            reader := bufio.NewReader(os.Stdin)
+            text, _ := reader.ReadString('\n')
+            _ = text
+            os.Exit(1)
+        },
+        Finally: func() {
+        },
+    }.Do()
+}
+
+/// Try Block ///
+type Block struct {
+    Try     func()
+    Catch   func(Exception)
+    Finally func()
+}
+
+type Exception interface{}
+
+func Throw(up Exception) {
+    panic(up)
+}
+func (tcf Block) Do() {
+    if tcf.Finally != nil {
+            defer tcf.Finally()
+    }
+    if tcf.Catch != nil {
+        defer func() {
+            if r := recover(); r != nil {
+                    tcf.Catch(r)
+            }
+        }()
+    }
+    tcf.Try()
+}
+/// End Try Block ///
