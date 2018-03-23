@@ -13,4 +13,4 @@ NoReboot is a simple script that will attempt to disable Windows automatic reboo
 
 ## How do I use it?
 
-Simply download the .exe or build the .go file and run it as an administrator. If NoReboot is already enabled it will prompt to remove it, otherwise it will prompt to install it. Simple
+Simply download the .exe (https://github.com/SmugZombie/NoReboot/releases) or build the .go file and run it as an administrator. If NoReboot is already enabled it will prompt to remove it, otherwise it will prompt to install it. Simple
