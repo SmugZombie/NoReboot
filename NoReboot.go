@@ -3,7 +3,7 @@ package main
 // NoReboot
 // A simple script designed to disable automatic reboots by windows updates. 
 // Smugzombie - github.com/smugzombie
-// Version 1.1
+// Version 1.2
 // We're not saying that you should skip installing updates, as they're important to keep your device secure and up to date. 
 // However, there are scenarios where you make want to take full control and decide exactly when to restart your computer 
 // to apply new updates, and this is when knowing how to stop automatic reboots comes in handy.
@@ -20,6 +20,7 @@ var rebootpath = rootpath + "Reboot"
 var rebootpathbak = rebootpath + ".bak"
 var aboutpath = rootpath + ".NoReboot"
 var undo = ""
+var version = "1.2"
 
 func main() {
 	// Show the splash screen
@@ -30,7 +31,7 @@ func main() {
 	// Check to see if NoReboot is already enabled
 	if(checkForNoReboot()){
 		// If so, tell user and ask if they wish to remove it
-		fmt.Println("NoReboot is already installed")
+		fmt.Println("NoReboot is already installed \n")
 		if(readUserInput("Would you like to uninstall it now? (y|yes): ")){
 			// If yes, remove it
 			removeNoReboot()
@@ -40,7 +41,7 @@ func main() {
 		}
 	}else{
 		// If not, ask the user if they would like to install it.
-		fmt.Println("NoReboot is not installed")
+		fmt.Println("NoReboot is not installed \n")
 		if(readUserInput("Would you like to install it now? (y|yes): ")){
 			// If yes, install
 			installNoReboot()
@@ -49,6 +50,7 @@ func main() {
 			fmt.Println("Ok, Maybe next time. Goodbye!")
 		}
 	}
+	userWait()
 }
 
 // A simple function to ask a user a question, and only really care if they answer positively, otherwise return false
@@ -66,6 +68,14 @@ func readUserInput(message string) bool{
 	}
 }
 
+// Simply create a user prompt to ensure the console window stays open long enough to read
+func userWait(){
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("\n" + "Press Enter to Continue")
+    text, _ := reader.ReadString('\n')
+    _ = text
+}
+
 // Display the splash for the app
 func splash(){
 	fmt.Println(" _   _      ______     _                 _   ")
@@ -73,10 +83,9 @@ func splash(){
 	fmt.Println("|  \\| | ___ | |_/ /___| |__   ___   ___ | |_ ")
 	fmt.Println("| . ` |/ _ \\|    // _ \\ '_ \\ / _ \\ / _ \\| __|")
 	fmt.Println("| |\\  | (_) | |\\ \\  __/ |_) | (_) | (_) | |_ ")
-	fmt.Println("\\_| \\_/\\___/\\_| \\_\\___|_.__/ \\___/ \\___/ \\__|")
+	fmt.Println("\\_| \\_/\\___/\\_| \\_\\___|_.__/ \\___/ \\___/ \\__| v"+version)
 	fmt.Println("                                             ")
 	fmt.Println("Brought to you by: Smugzombie (github.com/smugzombie)")
-	fmt.Println("")
 	fmt.Println("")
 }
 
@@ -115,9 +124,11 @@ func installNoReboot(){
 				CreateDirIfNotExist(rebootpath)
 				// Create about file
 				createAbout(aboutpath)
+
+				fmt.Println("\nNoReboot Successfully Applied!")
 		}else{
 			// If the directory does exist, NoReboot is already applied
-			fmt.Println("NoReboot already applied")
+			fmt.Println("\nNoReboot already applied")
 		}
 	}else{
 		// Uhoh, we don't know where the reboot file is, but shouldn't proceed
@@ -134,7 +145,7 @@ func removeNoReboot(){
 	fmt.Println("Restoring: " + rebootpathbak	+ " to " + rebootpath)
 	moveFile(rebootpathbak, rebootpath)
 	// Delete the backup file
-	fmt.Println("NoReboot has restored your reboot configuration.")
+	fmt.Println("\nNoReboot has restored your reboot configuration.")
 	deleteFile(rebootpathbak)
 	// Delete the about file
 	deleteFile(aboutpath)
@@ -240,9 +251,7 @@ func checkIfAdmin(){
         },
         Catch: func(e Exception) {
             fmt.Printf("%v\n", e)
-            reader := bufio.NewReader(os.Stdin)
-            text, _ := reader.ReadString('\n')
-            _ = text
+            userWait()
             os.Exit(1)
         },
         Finally: func() {
