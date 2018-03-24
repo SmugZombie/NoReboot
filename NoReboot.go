@@ -3,7 +3,7 @@ package main
 // NoReboot
 // A simple script designed to disable automatic reboots by windows updates. 
 // Smugzombie - github.com/smugzombie
-// Version 1.2
+// Version 1.3
 // We're not saying that you should skip installing updates, as they're important to keep your device secure and up to date. 
 // However, there are scenarios where you make want to take full control and decide exactly when to restart your computer 
 // to apply new updates, and this is when knowing how to stop automatic reboots comes in handy.
@@ -27,6 +27,15 @@ func main() {
 	splash()
 
 	checkIfAdmin()
+
+	// Check windows Version
+
+	// Check to see if root path even exists
+	if(fileExists(rootpath) == false){
+		fmt.Println("Sorry it doesn't appear that this OS is supported at this time.")
+		userWait()
+        os.Exit(1)
+	}
 
 	// Check to see if NoReboot is already enabled
 	if(checkForNoReboot()){
@@ -114,18 +123,33 @@ func installNoReboot(){
 			}else{
 				// If the file does not exist.. create it.. then move on
 				fmt.Println("Backing up: " + rebootpath	+ " to " + rebootpathbak)
-				moveFile(rebootpath, rebootpathbak)
+				if(moveFile(rebootpath, rebootpathbak) == false){
+					fmt.Println("\nUnable to backup original Reboot file. Do you have proper permissions? Exiting!")
+					os.Exit(1)
+				}
 			}
 				// Delete Original File
 				fmt.Println("Deleting Original Reboot File")
-				deleteFile(rebootpath)
-				// Create Directory in Place
-				fmt.Println("Creating Reboot Directory")
-				CreateDirIfNotExist(rebootpath)
-				// Create about file
-				createAbout(aboutpath)
+				if(deleteFile(rebootpath)){
+					// Create Directory in Place
+					fmt.Println("Creating Reboot Directory")
+					if(CreateDirIfNotExist(rebootpath)){
+						// Create about file
+						if(createAbout(aboutpath)){
+							fmt.Println("\nNoReboot Successfully Applied!")
+						}else{
+							fmt.Println("\nUnable to successfully apply NoReboot!")
+						}
+					}else{
+						fmt.Println("\nUnable to create NoReboot directory! Do you have proper permissions? Exiting!")
+					}
+				}else{
+					fmt.Println("Unable to delete original Reboot File. Do you have proper permissions? Exiting!")
+				}
+				
+				
 
-				fmt.Println("\nNoReboot Successfully Applied!")
+				
 		}else{
 			// If the directory does exist, NoReboot is already applied
 			fmt.Println("\nNoReboot already applied")
@@ -163,7 +187,10 @@ func fileExists(filepath string) bool{
 // Copys a file from one place to another
 func moveFile(filepath string, newfilepath string) bool{
 	Copy(filepath, newfilepath)
-	return true
+	if(fileExists(newfilepath)){
+		return true
+	}
+	return false
 }
 
 // Deletes a file
@@ -174,13 +201,14 @@ func deleteFile(filepath string) bool{
 }
 
 // Create a directory, if not already existing
-func CreateDirIfNotExist(dir string) {
+func CreateDirIfNotExist(dir string) bool{
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, 0755)
 		if err != nil {
-				panic(err)
+				return false
 		}
 	}
+	return true
 }
 
 // Copies a file from src to dst location
@@ -216,7 +244,7 @@ func isDirorFile(filepath string) string{
 }
 
 // Creates the about file that explains how to disable
-func createAbout(filepath string){
+func createAbout(filepath string) bool{
 	var _, err = os.Stat(filepath)
 
 	if os.IsNotExist(err) {
@@ -234,10 +262,11 @@ func createAbout(filepath string){
 	defer file.Close()
 
 	_, err = file.WriteString("This file exists to show that NoReboot has been applied to this machine. To remove NoReboot simply run the script again and say yes to uninstalling or to do so manually delete the 'Reboot' directory and move 'Reboot.bak' back to 'Reboot'")
-	if err != nil { fmt.Println(err) }
+	if err != nil { fmt.Println(err); return false }
 
 	err = file.Sync()
-	if err != nil { fmt.Println(err) }
+	if err != nil { fmt.Println(err); return false }
+	return true
 }
 
 func checkIfAdmin(){
