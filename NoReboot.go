@@ -26,9 +26,15 @@ func main() {
 	// Show the splash screen
 	splash()
 
+	// Check to ensure we are running as an administrator
 	checkIfAdmin()
 
-	// Check windows Version
+	// Check to see if, even though we are admin, we can see / modify files in the rootpath directory
+	if(checkPermissions() == false){
+		fmt.Println("Sorry it doesn't appear that this machines permissions allow for updating the proper files.")
+		userWait()
+        os.Exit(1)
+	}
 
 	// Check to see if root path even exists
 	if(fileExists(rootpath) == false){
@@ -145,11 +151,7 @@ func installNoReboot(){
 					}
 				}else{
 					fmt.Println("Unable to delete original Reboot File. Do you have proper permissions? Exiting!")
-				}
-				
-				
-
-				
+				}	
 		}else{
 			// If the directory does exist, NoReboot is already applied
 			fmt.Println("\nNoReboot already applied")
@@ -261,7 +263,7 @@ func createAbout(filepath string) bool{
     }
 	defer file.Close()
 
-	_, err = file.WriteString("This file exists to show that NoReboot has been applied to this machine. To remove NoReboot simply run the script again and say yes to uninstalling or to do so manually delete the 'Reboot' directory and move 'Reboot.bak' back to 'Reboot'")
+	_, err = file.WriteString("This file exists to show that NoReboot (https://github.com/smugzombie/noreboot) has been applied to this machine. To remove NoReboot simply run the script again and say yes to uninstalling or to do so manually delete the 'Reboot' directory and move 'Reboot.bak' back to 'Reboot'")
 	if err != nil { fmt.Println(err); return false }
 
 	err = file.Sync()
@@ -286,6 +288,21 @@ func checkIfAdmin(){
         Finally: func() {
         },
     }.Do()
+}
+
+func checkPermissions() bool{
+	fo, err := os.Create(rootpath + "noreboot.tmp")
+    if err != nil { 
+        return false 
+    }
+
+    /*if(deleteFile(rootpath + "noreboot.tmp") == false){
+    	return false
+    }*/
+
+    defer fo.Close()
+    
+    return true
 }
 
 /// Try Block ///
