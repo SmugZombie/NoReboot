@@ -20,7 +20,7 @@ var rebootpath = rootpath + "Reboot"
 var rebootpathbak = rebootpath + ".bak"
 var aboutpath = rootpath + ".NoReboot"
 var undo = ""
-var version = "1.2"
+var version = "1.3"
 
 func main() {
 	// Show the splash screen
